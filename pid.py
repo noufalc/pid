@@ -35,9 +35,9 @@ class ADRC(object):
         self.X = np.array([0.0,0.0,0.0])
         self.sampling_time = 8e-3
         self.sampling_frequency = int(1/self.sampling_time)
-        self.K_p = 0.0280   # 0.0462   # 0.0980   #  0.0840
-        self.K_d = 0.0329   # 0.0543   # 0.0518   # 0.0370
-        self.K_i = 0.0159   # 0.0262   # 0.0695   # 0.0476
+        self.K_p = 0.0840  #cl 0.0840 #p  0.0980  #s  0.0462 #n  0.0280 
+        self.K_d = 0.0370  #   0.0370 #   0.0518   #  0.0543 #   0.0329    
+        self.K_i = 0.0476  #   0.0476 #   0.0695   #  0.0262 #   0.0159    
         self.b = 0.2
         self.output_file = open('data.csv', 'w')
         self.pwm_frequency = 20000
@@ -47,8 +47,10 @@ class ADRC(object):
 
     # lambda function definitions
     current_micro_time = lambda self: int(round(time.time() * 1000000))
-    f_reference_accelaration = lambda self, t: 240.0*t*((t>0)&(t<=1))+(240.0)*((t>1)&(t<=3))+(-240.0*t+960.0)*((t>3)&(t<=4))+0.0*(t>4)
-    f_reference_speed = lambda self, t: 0.0*t*((t>0)&(t<=10))+(600.0)*(t>10)
+    #f_reference_accelaration = lambda self, t: 240.0*t*((t>0)&(t<=1))+(240.0)*((t>1)&(t<=3))+(-240.0*t+960.0)*((t>3)&(t<=4))+0.0*(t>4)
+    #f_reference_accelaration = lambda self, t: 0.0*t*((t>0)&(t<=4))+(240.0*t - 960.0)*((t>4)&(t<=5))+(240.0)*((t>5)&(t<=7))+(-240.0*t+1920.0)*((t>7)&(t<=8))+0.0*(t>8)
+    f_reference_accelaration = lambda self, t: 0.0*t*((t>0)&(t<=4))+(50.0*t - 200.0)*((t>4)&(t<=6))+(100.0)*((t>6)&(t<=12))+(-50.0*t+700.0)*((t>12)&(t<=14))+0.0*(t>14)
+    #f_reference_speed = lambda self, t: 0.0*t*((t>0)&(t<=10))+(600.0)*(t>10)
 
 
     def init_process(self):
@@ -56,6 +58,7 @@ class ADRC(object):
         self.setup_adc()
         self.init_pwm()
         self.setup_gpio()
+        time.sleep(3)
         self.set_interval_start_time()
         self.init_interrupts()
         self.start = self.current_micro_time()
@@ -123,8 +126,9 @@ class ADRC(object):
 
 
     def get_reference_speed(self):
+        self.reference_speed +=  self.f_reference_accelaration(self.function_time) * (self.sampling_time)
         self.function_time += self.sampling_time
-        return self.f_reference_speed(self.function_time)
+        return self.reference_speed
 
 
     def get_reference_accelaration(self):
