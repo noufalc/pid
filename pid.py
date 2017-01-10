@@ -9,8 +9,7 @@ import os
 
 class PID(object):
 
-    '''Defines an object to implement the speed control of a DC motor.
-       No need to pass any arguments'''
+    '''Defines an object to implement the speed control of a DC motor.'''
 
     def __init__(self, K_p, K_i, K_d):
         self.speed = 0
